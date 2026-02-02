@@ -6,7 +6,7 @@
 
     <groupId>health.tiro</groupId>
     <artifactId>smart-web-ehr</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.1</version>
     <packaging>jar</packaging>
 
     <name>SMART Web EHR</name>
@@ -16,7 +16,7 @@
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <hapi.fhir.version>5.7.0</hapi.fhir.version>
+        <hapi.fhir.version>7.0.0</hapi.fhir.version>
         <jackson.version>2.15.3</jackson.version>
         <slf4j.version>2.0.9</slf4j.version>
     </properties>
@@ -30,7 +30,7 @@
         </dependency>
         <dependency>
             <groupId>ca.uhn.hapi.fhir</groupId>
-            <artifactId>hapi-fhir-structures-r4</artifactId>
+            <artifactId>hapi-fhir-structures-r5</artifactId>
             <version>${hapi.fhir.version}</version>
         </dependency>
 

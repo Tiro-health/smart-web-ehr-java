@@ -8,7 +8,7 @@ import health.tiro.smartwebehr.events.HandshakeReceivedEvent;
 import health.tiro.smartwebehr.events.SmartMessageListener;
 import health.tiro.smartwebehr.message.SmartMessageResponse;
 import health.tiro.smartwebehr.message.payload.LaunchContext;
-import org.hl7.fhir.r4.model.*;
+import org.hl7.fhir.r5.model.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 

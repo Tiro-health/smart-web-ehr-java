@@ -13,7 +13,7 @@ import health.tiro.smartwebehr.events.*;
 import health.tiro.smartwebehr.message.SmartMessageRequest;
 import health.tiro.smartwebehr.message.SmartMessageResponse;
 import health.tiro.smartwebehr.message.payload.*;
-import org.hl7.fhir.r4.model.*;
+import org.hl7.fhir.r5.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,12 +33,6 @@ public class SmartMessageHandler {
     private static final Logger logger = LoggerFactory.getLogger(SmartMessageHandler.class);
     private static final Pattern MESSAGE_ID_PATTERN = Pattern.compile("\"messageId\"\\s*:\\s*\"([^\"]+)\"", Pattern.CASE_INSENSITIVE);
 
-    /**
-     * Shared FhirContext instance. FhirContext is thread-safe and expensive to create,
-     * so it should be reused across all handler instances.
-     */
-    private static volatile FhirContext sharedFhirContext;
-
     private final ObjectMapper objectMapper;
     private final FhirContext fhirContext;
     private final IParser fhirJsonParser;
@@ -55,21 +49,6 @@ public class SmartMessageHandler {
         CompletableFuture<String> sendMessage(String jsonMessage);
     }
 
-    /**
-     * Returns the shared FhirContext instance, creating it lazily if needed.
-     * Uses double-checked locking for thread-safe lazy initialization.
-     */
-    private static FhirContext getSharedFhirContext() {
-        if (sharedFhirContext == null) {
-            synchronized (SmartMessageHandler.class) {
-                if (sharedFhirContext == null) {
-                    sharedFhirContext = FhirContext.forR4();
-                }
-            }
-        }
-        return sharedFhirContext;
-    }
-
     public SmartMessageHandler() {
         this(null, null);
     }
@@ -82,10 +61,10 @@ public class SmartMessageHandler {
      * Creates a new SmartMessageHandler with optional custom ObjectMapper and FhirContext.
      *
      * @param customObjectMapper Custom ObjectMapper to use, or null for the default
-     * @param customFhirContext  Custom FhirContext to use, or null to use the shared R4 context
+     * @param customFhirContext  Custom FhirContext to use, or null to use the cached R5 context
      */
     public SmartMessageHandler(ObjectMapper customObjectMapper, FhirContext customFhirContext) {
-        this.fhirContext = customFhirContext != null ? customFhirContext : getSharedFhirContext();
+        this.fhirContext = customFhirContext != null ? customFhirContext : FhirContext.forR5Cached();
         this.fhirJsonParser = fhirContext.newJsonParser().setPrettyPrint(false);
 
         this.objectMapper = customObjectMapper != null ? customObjectMapper : createDefaultObjectMapper();
@@ -614,7 +593,4 @@ public class SmartMessageHandler {
         return objectMapper;
     }
 
-    public FhirContext getFhirContext() {
-        return fhirContext;
-    }
 }

@@ -2,8 +2,8 @@ package health.tiro.smartwebehr.message.payload;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import javax.validation.constraints.NotNull;
-import org.hl7.fhir.r4.model.OperationOutcome;
-import org.hl7.fhir.r4.model.QuestionnaireResponse;
+import org.hl7.fhir.r5.model.OperationOutcome;
+import org.hl7.fhir.r5.model.QuestionnaireResponse;
 
 /**
  * Payload for form.submitted requests.

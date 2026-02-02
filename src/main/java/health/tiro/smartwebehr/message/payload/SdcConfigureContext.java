@@ -1,7 +1,7 @@
 package health.tiro.smartwebehr.message.payload;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import org.hl7.fhir.r4.model.Reference;
+import org.hl7.fhir.r5.model.Reference;
 
 import java.util.ArrayList;
 import java.util.List;

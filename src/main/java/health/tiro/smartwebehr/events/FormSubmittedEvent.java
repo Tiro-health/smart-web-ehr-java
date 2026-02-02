@@ -1,7 +1,7 @@
 package health.tiro.smartwebehr.events;
 
-import org.hl7.fhir.r4.model.OperationOutcome;
-import org.hl7.fhir.r4.model.QuestionnaireResponse;
+import org.hl7.fhir.r5.model.OperationOutcome;
+import org.hl7.fhir.r5.model.QuestionnaireResponse;
 
 import java.util.EventObject;
 
