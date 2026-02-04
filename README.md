@@ -8,7 +8,7 @@ A Java port of the [SMARTWebEHR](https://github.com/Tiro-health/SMARTWebEHR) .NE
 - SDC (Structured Data Capture) operations
 - Form submission handling
 - Event-driven architecture
-- HAPI FHIR R4 integration
+- HAPI FHIR R5 integration
 
 ## Installation
 
