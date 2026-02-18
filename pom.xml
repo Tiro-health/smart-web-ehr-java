@@ -39,12 +39,17 @@
         <module>smart-web-ehr-core</module>
         <module>smart-web-ehr-r4</module>
         <module>smart-web-ehr-r5</module>
+        <module>smart-web-ehr-ui</module>
+        <module>smart-web-ehr-ui-jxbrowser</module>
+        <module>smart-web-ehr-ui-equo</module>
     </modules>
 
     <properties>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <jxbrowser.version>7.41.3</jxbrowser.version>
+        <equo.chromium.version>144.0.0</equo.chromium.version>
         <hapi.fhir.version>5.7.0</hapi.fhir.version>
         <jackson.version>2.15.3</jackson.version>
         <slf4j.version>2.0.9</slf4j.version>
@@ -56,6 +61,12 @@
             <dependency>
                 <groupId>health.tiro</groupId>
                 <artifactId>smart-web-ehr-core</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>health.tiro</groupId>
+                <artifactId>smart-web-ehr-ui</artifactId>
                 <version>${project.version}</version>
             </dependency>
 
@@ -110,6 +121,25 @@
                 <groupId>org.hibernate.validator</groupId>
                 <artifactId>hibernate-validator</artifactId>
                 <version>6.2.5.Final</version>
+            </dependency>
+
+            <!-- JxBrowser -->
+            <dependency>
+                <groupId>com.teamdev.jxbrowser</groupId>
+                <artifactId>jxbrowser</artifactId>
+                <version>${jxbrowser.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.teamdev.jxbrowser</groupId>
+                <artifactId>jxbrowser-swing</artifactId>
+                <version>${jxbrowser.version}</version>
+            </dependency>
+
+            <!-- Equo Chromium -->
+            <dependency>
+                <groupId>com.equo</groupId>
+                <artifactId>com.equo.chromium</artifactId>
+                <version>${equo.chromium.version}</version>
             </dependency>
 
             <!-- Testing -->

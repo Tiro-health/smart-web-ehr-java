@@ -1,0 +1,213 @@
+package health.tiro.smartwebehr.ui;
+
+import health.tiro.smartwebehr.AbstractSmartMessageHandler;
+import health.tiro.smartwebehr.events.*;
+import org.hl7.fhir.instance.model.api.IBaseResource;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.swing.JPanel;
+import java.awt.BorderLayout;
+import java.awt.Component;
+import java.util.List;
+import java.util.concurrent.*;
+
+/**
+ * A Swing panel that embeds a browser and wires it to a SMART Web Messaging handler.
+ * Manages the handshake, message routing, and event dispatch.
+ *
+ * <pre>{@code
+ * var handler = new health.tiro.smartwebehr.r5.SmartMessageHandler();
+ * var browser = new JxBrowserAdapter(JxBrowserConfig.builder().licenseKey("...").build());
+ * var config = FormViewerConfig.builder().targetUrl("https://...").build();
+ * var panel = new FormViewerPanel(config, browser, handler);
+ *
+ * panel.addFormViewerListener(new FormViewerListener() {
+ *     @Override
+ *     public void onFormSubmitted(IBaseResource response, IBaseResource outcome) {
+ *         // process
+ *     }
+ * });
+ *
+ * frame.add(panel, BorderLayout.CENTER);
+ * }</pre>
+ */
+public class FormViewerPanel extends JPanel {
+
+    private static final Logger logger = LoggerFactory.getLogger(FormViewerPanel.class);
+    private static final long serialVersionUID = 1L;
+
+    private final FormViewerConfig config;
+    private final EmbeddedBrowser browser;
+    private final AbstractSmartMessageHandler handler;
+    private final CompletableFuture<Void> handshakeReceived = new CompletableFuture<>();
+    private final ScheduledExecutorService timeoutScheduler = Executors.newSingleThreadScheduledExecutor();
+    private final List<FormViewerListener> listeners = new CopyOnWriteArrayList<>();
+
+    /**
+     * Creates a new FormViewerPanel.
+     *
+     * @param config  panel configuration (target URL, timeouts)
+     * @param browser the embedded browser adapter
+     * @param handler the SMART Web Messaging handler (R4 or R5)
+     */
+    public FormViewerPanel(FormViewerConfig config, EmbeddedBrowser browser, AbstractSmartMessageHandler handler) {
+        this.config = config;
+        this.browser = browser;
+        this.handler = handler;
+
+        setLayout(new BorderLayout());
+
+        // Wire incoming messages: JS → handler → optional response back to JS
+        browser.setIncomingMessageHandler(json -> {
+            String response = handler.handleMessage(json);
+            if (response != null) {
+                browser.sendMessage(response);
+            }
+            return response;
+        });
+
+        // Wire outgoing messages: handler → JS
+        handler.setMessageSender(json -> {
+            browser.sendMessage(json);
+            return CompletableFuture.completedFuture(null);
+        });
+
+        // Listen for SMART Web Messaging events
+        handler.addListener(new SmartMessageListener() {
+            @Override
+            public void onHandshakeReceived(HandshakeReceivedEvent event) {
+                logger.info("Handshake received from web page");
+                handshakeReceived.complete(null);
+                fireHandshakeReceived();
+            }
+
+            @Override
+            public void onFormSubmitted(FormSubmittedEvent event) {
+                logger.info("Form submitted");
+                fireFormSubmitted(event.getResponse(), event.getOutcome());
+            }
+
+            @Override
+            public void onCloseApplication(CloseApplicationEvent event) {
+                logger.info("Close requested by web page");
+                fireCloseRequested();
+            }
+        });
+
+        // Create and add the browser component
+        Component browserComponent = browser.createComponent();
+        add(browserComponent, BorderLayout.CENTER);
+
+        // Load the target URL
+        browser.loadUrl(config.getTargetUrl());
+    }
+
+    // ========== Listener management ==========
+
+    public void addFormViewerListener(FormViewerListener listener) {
+        listeners.add(listener);
+    }
+
+    public void removeFormViewerListener(FormViewerListener listener) {
+        listeners.remove(listener);
+    }
+
+    private void fireHandshakeReceived() {
+        for (FormViewerListener listener : listeners) {
+            try {
+                listener.onHandshakeReceived();
+            } catch (Exception e) {
+                logger.error("Error in listener onHandshakeReceived", e);
+            }
+        }
+    }
+
+    private void fireFormSubmitted(IBaseResource response, IBaseResource outcome) {
+        for (FormViewerListener listener : listeners) {
+            try {
+                listener.onFormSubmitted(response, outcome);
+            } catch (Exception e) {
+                logger.error("Error in listener onFormSubmitted", e);
+            }
+        }
+    }
+
+    private void fireCloseRequested() {
+        for (FormViewerListener listener : listeners) {
+            try {
+                listener.onCloseRequested();
+            } catch (Exception e) {
+                logger.error("Error in listener onCloseRequested", e);
+            }
+        }
+    }
+
+    // ========== Public API ==========
+
+    /**
+     * Returns a future that resolves when the JS page completes the SMART Web Messaging
+     * handshake, or fails with a {@link TimeoutException} after the configured timeout.
+     */
+    public CompletableFuture<Void> waitForHandshake() {
+        return withTimeout(handshakeReceived, config.getHandshakeTimeoutSeconds(), TimeUnit.SECONDS);
+    }
+
+    /**
+     * Request form submission from the frontend.
+     */
+    public void requestSubmit() {
+        logger.info("Requesting form submit");
+        handler.sendFormRequestSubmitAsync(null);
+    }
+
+    /**
+     * Navigate the browser to a different URL.
+     */
+    public void navigate(String url) {
+        browser.loadUrl(url);
+    }
+
+    /**
+     * Get the underlying message handler for direct access to
+     * {@code sendSdcDisplayQuestionnaireAsync(...)} and other methods.
+     */
+    public AbstractSmartMessageHandler getMessageHandler() {
+        return handler;
+    }
+
+    /**
+     * Get the underlying browser for advanced use cases.
+     */
+    public EmbeddedBrowser getBrowser() {
+        return browser;
+    }
+
+    /**
+     * Clean up resources. Call this when the panel is no longer needed.
+     */
+    public void dispose() {
+        timeoutScheduler.shutdownNow();
+        browser.dispose();
+    }
+
+    /**
+     * Java 8 compatible replacement for CompletableFuture.orTimeout().
+     */
+    private <T> CompletableFuture<T> withTimeout(CompletableFuture<T> future, long timeout, TimeUnit unit) {
+        CompletableFuture<T> result = new CompletableFuture<>();
+        future.whenComplete((value, ex) -> {
+            if (ex != null) {
+                result.completeExceptionally(ex);
+            } else {
+                result.complete(value);
+            }
+        });
+        timeoutScheduler.schedule(() -> {
+            if (!result.isDone()) {
+                result.completeExceptionally(new TimeoutException("Handshake timeout after " + timeout + " " + unit));
+            }
+        }, timeout, unit);
+        return result;
+    }
+}
