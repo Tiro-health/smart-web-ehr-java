@@ -28,7 +28,7 @@ jobs:
           # Extracts '1.0.3' from 'refs/tags/v1.0.3'
           NEW_VERSION=$(echo "${{ github.ref }}" | sed -e 's,.*/v,,')
           echo "Setting POM version to $NEW_VERSION"
-          mvn versions:set -DnewVersion=$NEW_VERSION -DgenerateBackupPoms=false
+          mvn versions:set -DnewVersion=$NEW_VERSION -DgenerateBackupPoms=false -DprocessAllModules
 
       - name: Publish to Maven Central
         run: mvn clean deploy -P release -B
