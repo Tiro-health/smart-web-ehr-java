@@ -66,9 +66,9 @@ handler.addListener(new R5SmartMessageListener() {
 });
 ```
 
-### Embedded Browser (FormViewerPanel)
+### Embedded Browser (FormViewer)
 
-The easiest way to embed a SMART Web Messaging browser is using `FormViewerPanel` with a browser adapter:
+The easiest way to embed a SMART Web Messaging browser is using `FormViewer` with a browser adapter:
 
 ```java
 import health.tiro.smartwebehr.r5.SmartMessageHandler;
@@ -84,14 +84,14 @@ EmbeddedBrowser browser = new JxBrowserAdapter(
 // 2. Create the FHIR handler (pick your version)
 SmartMessageHandler handler = new SmartMessageHandler();
 
-// 3. Create the panel
+// 3. Create the viewer
 FormViewerConfig config = FormViewerConfig.builder()
     .targetUrl("https://your-form-app.com/form-viewer.html")
     .build();
-FormViewerPanel panel = new FormViewerPanel(config, browser, handler);
+FormViewer viewer = new FormViewer(config, browser, handler);
 
 // 4. Listen for events
-panel.addFormViewerListener(new FormViewerListener() {
+viewer.addFormViewerListener(new FormViewerListener() {
     @Override
     public void onFormSubmitted(IBaseResource response, IBaseResource outcome) {
         QuestionnaireResponse qr = (QuestionnaireResponse) response;
@@ -105,10 +105,10 @@ panel.addFormViewerListener(new FormViewerListener() {
 });
 
 // 5. Add to your Swing UI
-frame.add(panel, BorderLayout.CENTER);
+frame.add(viewer.getComponent(), BorderLayout.CENTER);
 
 // 6. Display a questionnaire (waits for handshake automatically)
-panel.waitForHandshake().thenRun(() -> {
+viewer.waitForHandshake().thenRun(() -> {
     handler.sendSdcDisplayQuestionnaireAsync(
         "http://example.org/Questionnaire/intake",
         null, patient, encounter, author, null
@@ -182,7 +182,7 @@ handler.sendSdcConfigureContextAsync(
 | Core | `smart-web-ehr-core` | Shared logic, FHIR-version-independent. Depends on `hapi-fhir-base` only. |
 | R4 | `smart-web-ehr-r4` | FHIR R4 typed API. Depends on core + `hapi-fhir-structures-r4`. |
 | R5 | `smart-web-ehr-r5` | FHIR R5 typed API. Depends on core + `hapi-fhir-structures-r5`. |
-| UI | `smart-web-ehr-ui` | `FormViewerPanel` (JPanel) + `EmbeddedBrowser` interface. Depends on core. |
+| UI | `smart-web-ehr-ui` | `FormViewer` controller + `EmbeddedBrowser` interface. Depends on core. |
 | UI JxBrowser | `smart-web-ehr-ui-jxbrowser` | JxBrowser adapter. Depends on ui + JxBrowser (provided). |
 | UI Equo | `smart-web-ehr-ui-equo` | Equo Chromium adapter. Depends on ui + Equo Chromium (provided). |
 

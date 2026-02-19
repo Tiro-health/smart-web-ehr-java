@@ -6,57 +6,53 @@ import org.hl7.fhir.instance.model.api.IBaseResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.swing.JPanel;
-import java.awt.BorderLayout;
 import java.awt.Component;
 import java.util.List;
 import java.util.concurrent.*;
 
 /**
- * A Swing panel that embeds a browser and wires it to a SMART Web Messaging handler.
+ * Controller that wires an embedded browser to a SMART Web Messaging handler.
  * Manages the handshake, message routing, and event dispatch.
  *
  * <pre>{@code
  * var handler = new health.tiro.smartwebehr.r5.SmartMessageHandler();
  * var browser = new JxBrowserAdapter(JxBrowserConfig.builder().licenseKey("...").build());
  * var config = FormViewerConfig.builder().targetUrl("https://...").build();
- * var panel = new FormViewerPanel(config, browser, handler);
+ * var viewer = new FormViewer(config, browser, handler);
  *
- * panel.addFormViewerListener(new FormViewerListener() {
+ * viewer.addFormViewerListener(new FormViewerListener() {
  *     @Override
  *     public void onFormSubmitted(IBaseResource response, IBaseResource outcome) {
  *         // process
  *     }
  * });
  *
- * frame.add(panel, BorderLayout.CENTER);
+ * frame.add(viewer.getComponent(), BorderLayout.CENTER);
  * }</pre>
  */
-public class FormViewerPanel extends JPanel {
+public class FormViewer {
 
-    private static final Logger logger = LoggerFactory.getLogger(FormViewerPanel.class);
-    private static final long serialVersionUID = 1L;
+    private static final Logger logger = LoggerFactory.getLogger(FormViewer.class);
 
     private final FormViewerConfig config;
     private final EmbeddedBrowser browser;
     private final AbstractSmartMessageHandler handler;
+    private final Component component;
     private final CompletableFuture<Void> handshakeReceived = new CompletableFuture<>();
     private final ScheduledExecutorService timeoutScheduler = Executors.newSingleThreadScheduledExecutor();
     private final List<FormViewerListener> listeners = new CopyOnWriteArrayList<>();
 
     /**
-     * Creates a new FormViewerPanel.
+     * Creates a new FormViewer.
      *
-     * @param config  panel configuration (target URL, timeouts)
+     * @param config  configuration (target URL, timeouts)
      * @param browser the embedded browser adapter
      * @param handler the SMART Web Messaging handler (R4 or R5)
      */
-    public FormViewerPanel(FormViewerConfig config, EmbeddedBrowser browser, AbstractSmartMessageHandler handler) {
+    public FormViewer(FormViewerConfig config, EmbeddedBrowser browser, AbstractSmartMessageHandler handler) {
         this.config = config;
         this.browser = browser;
         this.handler = handler;
-
-        setLayout(new BorderLayout());
 
         // Wire incoming messages: JS → handler → optional response back to JS
         browser.setIncomingMessageHandler(json -> {
@@ -95,9 +91,8 @@ public class FormViewerPanel extends JPanel {
             }
         });
 
-        // Create and add the browser component
-        Component browserComponent = browser.createComponent();
-        add(browserComponent, BorderLayout.CENTER);
+        // Create the browser component
+        this.component = browser.createComponent();
 
         // Load the target URL
         browser.loadUrl(config.getTargetUrl());
@@ -146,6 +141,13 @@ public class FormViewerPanel extends JPanel {
     // ========== Public API ==========
 
     /**
+     * Returns the browser component for the caller to place in their UI.
+     */
+    public Component getComponent() {
+        return component;
+    }
+
+    /**
      * Returns a future that resolves when the JS page completes the SMART Web Messaging
      * handshake, or fails with a {@link TimeoutException} after the configured timeout.
      */
@@ -184,7 +186,7 @@ public class FormViewerPanel extends JPanel {
     }
 
     /**
-     * Clean up resources. Call this when the panel is no longer needed.
+     * Clean up resources. Call this when the viewer is no longer needed.
      */
     public void dispose() {
         timeoutScheduler.shutdownNow();

@@ -3,13 +3,13 @@ package health.tiro.smartwebehr.ui;
 import org.hl7.fhir.instance.model.api.IBaseResource;
 
 /**
- * Listener for {@link FormViewerPanel} events.
+ * Listener for {@link FormViewer} events.
  * All methods have default no-op implementations — override only what you need.
  *
  * <p>FHIR resources are returned as {@link IBaseResource} (version-agnostic).
  * Cast to your version's concrete types:
  * <pre>{@code
- * panel.addFormViewerListener(new FormViewerListener() {
+ * viewer.addFormViewerListener(new FormViewerListener() {
  *     @Override
  *     public void onFormSubmitted(IBaseResource response, IBaseResource outcome) {
  *         QuestionnaireResponse qr = (QuestionnaireResponse) response;

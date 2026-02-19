@@ -1,7 +1,7 @@
 package health.tiro.smartwebehr.ui;
 
 /**
- * Configuration for {@link FormViewerPanel}.
+ * Configuration for {@link FormViewer}.
  * Use {@link #builder()} to create instances.
  *
  * <pre>{@code

@@ -5,7 +5,7 @@ import java.util.function.Function;
 
 /**
  * Abstraction over an embedded browser engine (JxBrowser, Equo Chromium, etc.).
- * Adapters implement this interface to plug into {@link FormViewerPanel}.
+ * Adapters implement this interface to plug into {@link FormViewer}.
  *
  * <p>The transport layer (how JS→Java messages arrive) is adapter-internal.
  * Java→JS messages are sent via {@link #sendMessage(String)}, which by default

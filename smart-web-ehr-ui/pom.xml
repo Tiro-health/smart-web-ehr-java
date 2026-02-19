@@ -12,7 +12,7 @@
 
     <artifactId>smart-web-ehr-ui</artifactId>
     <name>SMART Web EHR UI</name>
-    <description>Swing UI components for embedding SMART Web Messaging browsers — provides FormViewerPanel and EmbeddedBrowser interface</description>
+    <description>UI components for embedding SMART Web Messaging browsers — provides FormViewer controller and EmbeddedBrowser interface</description>
 
     <dependencies>
         <dependency>
