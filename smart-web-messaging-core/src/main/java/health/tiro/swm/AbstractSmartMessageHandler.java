@@ -21,6 +21,7 @@ import org.slf4j.LoggerFactory;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -37,10 +38,10 @@ public abstract class AbstractSmartMessageHandler {
     private final ObjectMapper objectMapper;
     private final FhirContext fhirContext;
     private final IParser fhirJsonParser;
-    private final List<SmartMessageListener> listeners = new ArrayList<>();
+    private final List<SmartMessageListener> listeners = new CopyOnWriteArrayList<>();
     private final Map<String, Consumer<SmartMessageResponse>> responseListeners = new ConcurrentHashMap<>();
 
-    private MessageSender messageSender;
+    private volatile MessageSender messageSender;
 
     /**
      * Functional interface for sending messages back to the WebView.
@@ -199,7 +200,7 @@ public abstract class AbstractSmartMessageHandler {
                 }
             }
         } else {
-            logger.warn("No listener found for response message with ResponseToMessageId: {}",
+            logger.debug("No listener found for response message with ResponseToMessageId: {}",
                 response.getResponseToMessageId());
         }
     }

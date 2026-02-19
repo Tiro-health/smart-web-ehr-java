@@ -39,7 +39,11 @@ public class FormViewer {
     private final AbstractSmartMessageHandler handler;
     private final Component component;
     private final CompletableFuture<Void> handshakeReceived = new CompletableFuture<>();
-    private final ScheduledExecutorService timeoutScheduler = Executors.newSingleThreadScheduledExecutor();
+    private final ScheduledExecutorService timeoutScheduler = Executors.newSingleThreadScheduledExecutor(r -> {
+        Thread t = new Thread(r, "swm-handshake-timeout");
+        t.setDaemon(true);
+        return t;
+    });
     private final List<FormViewerListener> listeners = new CopyOnWriteArrayList<>();
 
     /**
@@ -57,10 +61,10 @@ public class FormViewer {
         // Wire incoming messages: JS → handler → response sent by adapter via return value
         browser.setIncomingMessageHandler(json -> handler.handleMessage(json));
 
-        // Wire outgoing messages: handler → JS
+        // Wire outgoing messages: handler → JS (queued until handshake completes)
         handler.setMessageSender(json -> {
-            browser.sendMessage(json);
-            return CompletableFuture.completedFuture(null);
+            handshakeReceived.thenRun(() -> browser.sendMessage(json));
+            return handshakeReceived.thenApply(v -> null);
         });
 
         // Listen for SMART Web Messaging events

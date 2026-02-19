@@ -4,6 +4,7 @@ import com.teamdev.jxbrowser.browser.Browser;
 import com.teamdev.jxbrowser.browser.event.ConsoleMessageReceived;
 import com.teamdev.jxbrowser.engine.Engine;
 import com.teamdev.jxbrowser.engine.EngineOptions;
+import com.teamdev.jxbrowser.js.JsObject;
 import com.teamdev.jxbrowser.navigation.event.FrameLoadFinished;
 import com.teamdev.jxbrowser.permission.PermissionType;
 import com.teamdev.jxbrowser.permission.callback.RequestPermissionCallback;
@@ -65,7 +66,7 @@ public class JxBrowserAdapter implements EmbeddedBrowser {
                 event.consoleMessage().message())
         );
 
-        bridge = new JxBrowserBridge(browser);
+        bridge = new JxBrowserBridge(browser, this::sendMessage);
 
         if (pendingIncomingMessageHandler != null) {
             bridge.setIncomingMessageHandler(pendingIncomingMessageHandler);
@@ -100,6 +101,16 @@ public class JxBrowserAdapter implements EmbeddedBrowser {
     }
 
     @Override
+    public void sendMessage(String json) {
+        browser.mainFrame().ifPresent(frame -> {
+            JsObject window = frame.executeJavaScript("window");
+            if (window != null) {
+                window.call("swmReceiveMessage", json);
+            }
+        });
+    }
+
+    @Override
     public void setIncomingMessageHandler(Function<String, String> handler) {
         if (bridge != null) {
             bridge.setIncomingMessageHandler(handler);
@@ -115,6 +126,9 @@ public class JxBrowserAdapter implements EmbeddedBrowser {
 
     @Override
     public void dispose() {
+        if (bridge != null) {
+            bridge.dispose();
+        }
         if (engine != null) {
             engine.close();
         }

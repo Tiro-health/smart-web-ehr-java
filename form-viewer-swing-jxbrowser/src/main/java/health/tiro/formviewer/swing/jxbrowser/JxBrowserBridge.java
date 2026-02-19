@@ -6,6 +6,9 @@ import com.teamdev.jxbrowser.js.JsObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 /**
@@ -18,10 +21,17 @@ public class JxBrowserBridge {
     private static final Logger logger = LoggerFactory.getLogger(JxBrowserBridge.class);
 
     private final Browser browser;
-    private Function<String, String> incomingMessageHandler;
+    private final Consumer<String> responseSender;
+    private final ExecutorService executor = Executors.newSingleThreadExecutor(r -> {
+        Thread t = new Thread(r, "swm-message-handler");
+        t.setDaemon(true);
+        return t;
+    });
+    private volatile Function<String, String> incomingMessageHandler;
 
-    JxBrowserBridge(Browser browser) {
+    JxBrowserBridge(Browser browser, Consumer<String> responseSender) {
         this.browser = browser;
+        this.responseSender = responseSender;
     }
 
     void setIncomingMessageHandler(Function<String, String> handler) {
@@ -30,6 +40,7 @@ public class JxBrowserBridge {
 
     /**
      * Called from JavaScript via {@code window.javaBridge.postMessage(json)}.
+     * JS → Java --> JS request path
      */
     @JsAccessible
     public void postMessage(String json) {
@@ -38,11 +49,20 @@ public class JxBrowserBridge {
             logger.warn("No incoming message handler set, ignoring message");
             return;
         }
-        try {
-            incomingMessageHandler.apply(json);
-        } catch (Exception e) {
-            logger.error("Error handling message from JS", e);
-        }
+        executor.execute(() -> {
+            try {
+                String response = incomingMessageHandler.apply(json);
+                if (response != null) {
+                    responseSender.accept(response);
+                }
+            } catch (Exception e) {
+                 logger.error("Error handling message from JS", e);
+            }
+        });
+    }
+
+    void dispose() {
+        executor.shutdownNow();
     }
 
     /**

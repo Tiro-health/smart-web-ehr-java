@@ -12,6 +12,8 @@ import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.function.Function;
 
 /**
@@ -30,9 +32,14 @@ public class EquoBrowserAdapter implements EmbeddedBrowser {
     private static final String SWM_SCHEME = "swm://postMessage/";
 
     private final List<Runnable> pageLoadListeners = new CopyOnWriteArrayList<>();
+    private final ExecutorService executor = Executors.newSingleThreadExecutor(r -> {
+        Thread t = new Thread(r, "swm-message-handler");
+        t.setDaemon(true);
+        return t;
+    });
     private ChromiumBrowser browser;
     private JPanel container;
-    private Function<String, String> incomingMessageHandler;
+    private volatile Function<String, String> incomingMessageHandler;
 
     public EquoBrowserAdapter() {
     }
@@ -67,11 +74,6 @@ public class EquoBrowserAdapter implements EmbeddedBrowser {
     }
 
     @Override
-    public void sendMessage(String json) {
-        sendToJsInternal(json);
-    }
-
-    @Override
     public void setIncomingMessageHandler(Function<String, String> handler) {
         this.incomingMessageHandler = handler;
     }
@@ -83,6 +85,7 @@ public class EquoBrowserAdapter implements EmbeddedBrowser {
 
     @Override
     public void dispose() {
+        executor.shutdownNow();
         if (browser != null) {
             browser.close();
         }
@@ -144,23 +147,20 @@ public class EquoBrowserAdapter implements EmbeddedBrowser {
             logger.debug("Received from JS: {}", json);
 
             if (incomingMessageHandler != null) {
-                String responseJson = incomingMessageHandler.apply(json);
-                if (responseJson != null) {
-                    sendToJsInternal(responseJson);
-                }
+                executor.execute(() -> {
+                    try {
+                        String responseJson = incomingMessageHandler.apply(json);
+                        if (responseJson != null) {
+                            sendMessage(responseJson);
+                        }
+                    } catch (Exception e) {
+                        logger.error("Error processing message", e);
+                    }
+                });
             }
         } catch (Exception e) {
             logger.error("Error handling message from: {}", url, e);
         }
-    }
-
-    private void sendToJsInternal(String json) {
-        String escaped = json
-            .replace("\\", "\\\\")
-            .replace("'", "\\'")
-            .replace("\n", "\\n")
-            .replace("\r", "\\r");
-        browser.executeJavaScript("window.swmReceiveMessage('" + escaped + "');");
     }
 
 }
