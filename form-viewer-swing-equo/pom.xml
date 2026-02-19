@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>health.tiro</groupId>
+        <artifactId>smart-web-messaging-parent</artifactId>
+        <version>2.0.0</version>
+    </parent>
+
+    <artifactId>form-viewer-swing-equo</artifactId>
+    <packaging>jar</packaging>
+    <name>Form Viewer Swing - Equo Chromium</name>
+    <description>Equo Chromium adapter for form-viewer-swing — implements EmbeddedBrowser using Equo Chromium</description>
+
+    <repositories>
+        <repository>
+            <id>equo-chromium</id>
+            <url>https://dl.equo.dev/chromium-swt-ce/oss/mvn</url>
+        </repository>
+    </repositories>
+
+    <dependencies>
+        <dependency>
+            <groupId>health.tiro</groupId>
+            <artifactId>form-viewer-swing</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.equo</groupId>
+            <artifactId>com.equo.chromium</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+        </dependency>
+    </dependencies>
+</project>

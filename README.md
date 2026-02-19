@@ -22,7 +22,7 @@ Pick the module matching your FHIR version:
 ```xml
 <dependency>
     <groupId>health.tiro</groupId>
-    <artifactId>smart-web-ehr-r5</artifactId>
+    <artifactId>smart-web-messaging-r5</artifactId>
     <version>2.0.0</version>
 </dependency>
 ```
@@ -32,21 +32,21 @@ Pick the module matching your FHIR version:
 ```xml
 <dependency>
     <groupId>health.tiro</groupId>
-    <artifactId>smart-web-ehr-r4</artifactId>
+    <artifactId>smart-web-messaging-r4</artifactId>
     <version>2.0.0</version>
 </dependency>
 ```
 
-Both modules transitively include `smart-web-ehr-core`, so you only need one dependency.
+Both modules transitively include `smart-web-messaging-core`, so you only need one dependency.
 
 ## Usage
 
 ### Basic Setup
 
 ```java
-// R5 example — for R4, change the import to health.tiro.smartwebehr.r4.SmartMessageHandler
-import health.tiro.smartwebehr.r5.SmartMessageHandler;
-import health.tiro.smartwebehr.r5.R5SmartMessageListener;
+// R5 example — for R4, change the import to health.tiro.swm.r4.SmartMessageHandler
+import health.tiro.swm.r5.SmartMessageHandler;
+import health.tiro.swm.r5.R5SmartMessageListener;
 import org.hl7.fhir.r5.model.*;
 
 // Create handler
@@ -71,9 +71,9 @@ handler.addListener(new R5SmartMessageListener() {
 The easiest way to embed a SMART Web Messaging browser is using `FormViewer` with a browser adapter:
 
 ```java
-import health.tiro.smartwebehr.r5.SmartMessageHandler;
-import health.tiro.smartwebehr.ui.*;
-import health.tiro.smartwebehr.ui.jxbrowser.*;  // or .equo.*
+import health.tiro.swm.r5.SmartMessageHandler;
+import health.tiro.formviewer.swing.*;
+import health.tiro.formviewer.swing.jxbrowser.*;  // or .equo.*
 
 // 1. Create a browser adapter (pick one)
 EmbeddedBrowser browser = new JxBrowserAdapter(
@@ -123,7 +123,7 @@ Install the UI module matching your browser engine:
 ```xml
 <dependency>
     <groupId>health.tiro</groupId>
-    <artifactId>smart-web-ehr-ui-jxbrowser</artifactId>
+    <artifactId>form-viewer-swing-jxbrowser</artifactId>
     <version>2.0.0</version>
 </dependency>
 ```
@@ -133,12 +133,12 @@ Install the UI module matching your browser engine:
 ```xml
 <dependency>
     <groupId>health.tiro</groupId>
-    <artifactId>smart-web-ehr-ui-equo</artifactId>
+    <artifactId>form-viewer-swing-equo</artifactId>
     <version>2.0.0</version>
 </dependency>
 ```
 
-Both transitively include `smart-web-ehr-ui` and `smart-web-ehr-core`. You also need the R4 or R5 module for your FHIR handler, plus the browser engine dependency itself (JxBrowser or Equo Chromium).
+Both transitively include `form-viewer-swing` and `smart-web-messaging-core`. You also need the R4 or R5 module for your FHIR handler, plus the browser engine dependency itself (JxBrowser or Equo Chromium).
 
 ### Sending SDC Messages
 
@@ -179,12 +179,12 @@ handler.sendSdcConfigureContextAsync(
 
 | Module | Artifact | Description |
 |--------|----------|-------------|
-| Core | `smart-web-ehr-core` | Shared logic, FHIR-version-independent. Depends on `hapi-fhir-base` only. |
-| R4 | `smart-web-ehr-r4` | FHIR R4 typed API. Depends on core + `hapi-fhir-structures-r4`. |
-| R5 | `smart-web-ehr-r5` | FHIR R5 typed API. Depends on core + `hapi-fhir-structures-r5`. |
-| UI | `smart-web-ehr-ui` | `FormViewer` controller + `EmbeddedBrowser` interface. Depends on core. |
-| UI JxBrowser | `smart-web-ehr-ui-jxbrowser` | JxBrowser adapter. Depends on ui + JxBrowser (provided). |
-| UI Equo | `smart-web-ehr-ui-equo` | Equo Chromium adapter. Depends on ui + Equo Chromium (provided). |
+| Core | `smart-web-messaging-core` | Shared logic, FHIR-version-independent. Depends on `hapi-fhir-base` only. |
+| R4 | `smart-web-messaging-r4` | FHIR R4 typed API. Depends on core + `hapi-fhir-structures-r4`. |
+| R5 | `smart-web-messaging-r5` | FHIR R5 typed API. Depends on core + `hapi-fhir-structures-r5`. |
+| Swing | `form-viewer-swing` | `FormViewer` controller + `EmbeddedBrowser` interface. Depends on core. |
+| Swing JxBrowser | `form-viewer-swing-jxbrowser` | JxBrowser adapter. Depends on swing + JxBrowser (provided). |
+| Swing Equo | `form-viewer-swing-equo` | Equo Chromium adapter. Depends on swing + Equo Chromium (provided). |
 
 ## Message Types Supported
 
@@ -225,8 +225,8 @@ For **JxBrowser**, the adapter injects `window.javaBridge` after page load and c
 import health.tiro.smartwebehr.SmartMessageHandler;
 
 // After (2.x) — pick your FHIR version
-import health.tiro.smartwebehr.r5.SmartMessageHandler;  // R5
-import health.tiro.smartwebehr.r4.SmartMessageHandler;  // R4
+import health.tiro.swm.r5.SmartMessageHandler;  // R5
+import health.tiro.swm.r4.SmartMessageHandler;  // R4
 ```
 
 The `SmartMessageHandler` API is unchanged. The only difference is the import and the Maven artifact.
