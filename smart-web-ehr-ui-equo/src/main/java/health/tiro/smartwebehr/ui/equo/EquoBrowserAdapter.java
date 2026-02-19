@@ -24,8 +24,8 @@ import java.util.function.Function;
 /**
  * {@link EmbeddedBrowser} implementation backed by Equo Chromium.
  *
- * <p>Uses URL scheme interception ({@code swm://postMessage/}) for JS→Java messaging.
- * Automatically injects {@code window.__equoHost = true} so the bridge JS detects the Equo transport.
+ * <p>Uses URL scheme interception ({@code swm://postMessage/}) for JS→Java messaging
+ * and {@code window.swmReceiveMessage(...)} for Java→JS messaging.
  *
  * <pre>{@code
  * EmbeddedBrowser browser = new EquoBrowserAdapter();
@@ -51,7 +51,6 @@ public class EquoBrowserAdapter implements EmbeddedBrowser {
     @Override
     public Component createComponent() {
         container = new JPanel(new BorderLayout());
-        // Browser will be created in loadUrl() since ChromiumBrowser.swing() requires a URL
         return container;
     }
 
@@ -60,14 +59,12 @@ public class EquoBrowserAdapter implements EmbeddedBrowser {
         String resolvedUrl = resolveUrl(url);
 
         if (browser == null) {
-            // First load: create the browser with the target URL
             browser = ChromiumBrowser.swing(container, BorderLayout.CENTER, resolvedUrl);
             setupUrlInterception();
-            // Inject host flag so the JS bridge detects the Equo transport
-            browser.executeJavaScript("window.__equoHost = true");
+            setupPageLoadListener();
+            setupConsoleListener();
             logger.info("Equo Chromium browser created, loading: {}", resolvedUrl);
         } else {
-            // Subsequent navigations
             browser.setUrl(resolvedUrl);
         }
     }
@@ -77,6 +74,11 @@ public class EquoBrowserAdapter implements EmbeddedBrowser {
         if (browser != null) {
             browser.executeJavaScript(script);
         }
+    }
+
+    @Override
+    public void sendMessage(String json) {
+        sendToJsInternal(json);
     }
 
     @Override
@@ -119,19 +121,60 @@ public class EquoBrowserAdapter implements EmbeddedBrowser {
         });
     }
 
+    private void setupPageLoadListener() {
+        browser.subscribe().onLoadEnd(event -> {
+            logger.info("Page load complete (status={})", event.getHttpStatusCode());
+            browser.executeJavaScript(
+                "if (!window.__equoHost) { " +
+                "  window.__equoHost = true; " +
+                "  console.log('[Equo] __equoHost flag injected'); " +
+                "  if (window.SmartWebMessaging && typeof window.SmartWebMessaging.init === 'function') { " +
+                "    window.SmartWebMessaging.init(); " +
+                "  } " +
+                "}"
+            );
+            for (Runnable listener : pageLoadListeners) {
+                listener.run();
+            }
+        });
+    }
+
+    private void setupConsoleListener() {
+        browser.addConsoleListener((level, message, source, line) -> {
+            // CEF levels: 0=DEFAULT, 1=VERBOSE, 2=INFO(console.log), 3+=WARNING/ERROR
+            if (level >= 3) {
+                logger.warn("[JS] {}", message);
+            } else {
+                logger.debug("[JS] {}", message);
+            }
+            return false;
+        });
+    }
+
     private void handleIncomingMessage(String url) {
-        if (incomingMessageHandler == null) {
-            logger.warn("No incoming message handler set, ignoring message");
-            return;
-        }
         try {
             String encoded = url.substring(SWM_SCHEME.length());
             String json = URLDecoder.decode(encoded, StandardCharsets.UTF_8.name());
             logger.debug("Received from JS: {}", json);
-            incomingMessageHandler.apply(json);
+
+            if (incomingMessageHandler != null) {
+                String responseJson = incomingMessageHandler.apply(json);
+                if (responseJson != null) {
+                    sendToJsInternal(responseJson);
+                }
+            }
         } catch (Exception e) {
             logger.error("Error handling message from: {}", url, e);
         }
+    }
+
+    private void sendToJsInternal(String json) {
+        String escaped = json
+            .replace("\\", "\\\\")
+            .replace("'", "\\'")
+            .replace("\n", "\\n")
+            .replace("\r", "\\r");
+        browser.executeJavaScript("window.swmReceiveMessage('" + escaped + "');");
     }
 
     /**
@@ -143,10 +186,8 @@ public class EquoBrowserAdapter implements EmbeddedBrowser {
             return url;
         }
 
-        // Try as classpath resource
         URL resource = getClass().getResource(url);
         if (resource == null) {
-            // Not a classpath resource, return as-is (might be a file path)
             return url;
         }
 

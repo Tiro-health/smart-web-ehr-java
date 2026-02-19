@@ -54,14 +54,8 @@ public class FormViewer {
         this.browser = browser;
         this.handler = handler;
 
-        // Wire incoming messages: JS → handler → optional response back to JS
-        browser.setIncomingMessageHandler(json -> {
-            String response = handler.handleMessage(json);
-            if (response != null) {
-                browser.sendMessage(response);
-            }
-            return response;
-        });
+        // Wire incoming messages: JS → handler → response sent by adapter via return value
+        browser.setIncomingMessageHandler(json -> handler.handleMessage(json));
 
         // Wire outgoing messages: handler → JS
         handler.setMessageSender(json -> {
