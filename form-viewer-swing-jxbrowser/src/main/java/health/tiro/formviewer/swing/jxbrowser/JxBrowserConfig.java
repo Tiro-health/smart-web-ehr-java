@@ -58,7 +58,7 @@ public class JxBrowserConfig {
         }
 
         /**
-         * Set the browser language (default: {@link Language#DUTCH}).
+         * Set the browser language (default: {@link Language#ENGLISH_US}).
          */
         public Builder language(Language language) {
             this.language = language;

@@ -6,6 +6,7 @@ import org.hl7.fhir.instance.model.api.IBaseResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.swing.SwingUtilities;
 import java.awt.Component;
 import java.util.List;
 import java.util.concurrent.*;
@@ -109,33 +110,39 @@ public class FormViewer {
     }
 
     private void fireHandshakeReceived() {
-        for (FormViewerListener listener : listeners) {
-            try {
-                listener.onHandshakeReceived();
-            } catch (Exception e) {
-                logger.error("Error in listener onHandshakeReceived", e);
+        SwingUtilities.invokeLater(() -> {
+            for (FormViewerListener listener : listeners) {
+                try {
+                    listener.onHandshakeReceived();
+                } catch (Exception e) {
+                    logger.error("Error in listener onHandshakeReceived", e);
+                }
             }
-        }
+        });
     }
 
     private void fireFormSubmitted(IBaseResource response, IBaseResource outcome) {
-        for (FormViewerListener listener : listeners) {
-            try {
-                listener.onFormSubmitted(response, outcome);
-            } catch (Exception e) {
-                logger.error("Error in listener onFormSubmitted", e);
+        SwingUtilities.invokeLater(() -> {
+            for (FormViewerListener listener : listeners) {
+                try {
+                    listener.onFormSubmitted(response, outcome);
+                } catch (Exception e) {
+                    logger.error("Error in listener onFormSubmitted", e);
+                }
             }
-        }
+        });
     }
 
     private void fireCloseRequested() {
-        for (FormViewerListener listener : listeners) {
-            try {
-                listener.onCloseRequested();
-            } catch (Exception e) {
-                logger.error("Error in listener onCloseRequested", e);
+        SwingUtilities.invokeLater(() -> {
+            for (FormViewerListener listener : listeners) {
+                try {
+                    listener.onCloseRequested();
+                } catch (Exception e) {
+                    logger.error("Error in listener onCloseRequested", e);
+                }
             }
-        }
+        });
     }
 
     // ========== Public API ==========
@@ -195,7 +202,7 @@ public class FormViewer {
         timeoutScheduler.shutdownNow();
         // Run on a separate thread to avoid deadlocks when called from within
         // a browser callback (e.g., from an onFormSubmitted listener).
-        new Thread(() -> browser.dispose(), "formviewer-dispose").start();
+        new Thread(browser::dispose, "formviewer-dispose").start();
     }
 
     /**
