@@ -60,7 +60,7 @@ public class FormFiller {
         this.handler = handler;
 
         // Wire incoming messages: JS → handler → response sent by adapter via return value
-        browser.setIncomingMessageHandler(json -> handler.handleMessage(json));
+        browser.setIncomingMessageHandler(handler::handleMessage);
 
         // Wire outgoing messages: handler → JS (queued until handshake completes)
         handler.setMessageSender(json ->
