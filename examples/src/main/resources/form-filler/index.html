@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Form Viewer</title>
+    <script src="https://cdn.tiro.health/sdk/v0.2.1/tiro-web-sdk.iife.js"></script>
+  </head>
+  <body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;">
+    <main style="max-width: 64rem; margin: 0 auto; padding: 1rem 2rem;">
+      <!-- Toolbar -->
+      <div style="display: flex; justify-content: flex-end; gap: 0.5rem; margin-bottom: 0.75rem;">
+        <button onclick="SmartWebMessaging.saveProgress()"
+          style="padding: 6px 12px; font-size: 14px; font-weight: 500; border: 1px solid #d1d5db; border-radius: 6px; background: white; color: #374151; cursor: pointer;">
+          Save Progress
+        </button>
+        <button onclick="SmartWebMessaging.validate()"
+          style="padding: 6px 12px; font-size: 14px; font-weight: 500; border: none; border-radius: 6px; background: #2563eb; color: white; cursor: pointer;">
+          Validate
+        </button>
+      </div>
+
+      <tiro-form-filler
+        id="form-filler"
+        sdc-endpoint-address="https://sdc.tiro.health/fhir/r5"
+      ></tiro-form-filler>
+    </main>
+  </body>
+</html>

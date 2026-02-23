@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>health.tiro</groupId>
+        <artifactId>smart-web-messaging-parent</artifactId>
+        <version>2.0.0</version>
+        <relativePath>../../pom.xml</relativePath>
+    </parent>
+
+    <artifactId>example-jxbrowser</artifactId>
+    <packaging>jar</packaging>
+    <name>Example - JxBrowser</name>
+    <description>Example app using FormFiller with JxBrowser</description>
+
+    <properties>
+        <maven.deploy.skip>true</maven.deploy.skip>
+        <maven.install.skip>true</maven.install.skip>
+        <flags>-Dempty</flags>
+        <exec.binary>java</exec.binary>
+        <exec.prefix></exec.prefix>
+    </properties>
+
+    <repositories>
+        <repository>
+            <id>jxbrowser</id>
+            <url>https://europe-maven.pkg.dev/jxbrowser/releases</url>
+        </repository>
+    </repositories>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-simple</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>health.tiro</groupId>
+            <artifactId>smart-web-messaging-r4</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>health.tiro</groupId>
+            <artifactId>form-filler-swing-jxbrowser</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <!-- JxBrowser Core -->
+        <dependency>
+            <groupId>com.teamdev.jxbrowser</groupId>
+            <artifactId>jxbrowser</artifactId>
+        </dependency>
+
+        <!-- JxBrowser Swing integration -->
+        <dependency>
+            <groupId>com.teamdev.jxbrowser</groupId>
+            <artifactId>jxbrowser-swing</artifactId>
+        </dependency>
+
+        <!-- Cross-platform Chromium binaries -->
+        <dependency>
+            <groupId>com.teamdev.jxbrowser</groupId>
+            <artifactId>jxbrowser-cross-platform</artifactId>
+            <version>${jxbrowser.version}</version>
+            <type>pom</type>
+            <scope>runtime</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>3.1.0</version>
+                <configuration>
+                    <executable>${exec.binary}</executable>
+                    <commandlineArgs>${exec.prefix} ${flags} -Djxbrowser.license.key=${jxbrowser.license.key} -classpath %classpath health.tiro.examples.jxbrowser.Main</commandlineArgs>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <configuration><skipSource>true</skipSource></configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <configuration><skip>true</skip></configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.sonatype.central</groupId>
+                <artifactId>central-publishing-maven-plugin</artifactId>
+                <configuration><skipPublishing>true</skipPublishing></configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+    <profiles>
+        <profile>
+            <id>mac-java17-plus</id>
+            <activation>
+                <os><family>mac</family></os>
+                <jdk>[17,)</jdk>
+            </activation>
+            <properties>
+                <flags>--add-opens java.desktop/java.awt=ALL-UNNAMED --add-opens java.desktop/sun.awt=ALL-UNNAMED --add-opens java.desktop/sun.lwawt=ALL-UNNAMED --add-opens java.desktop/sun.lwawt.macosx=ALL-UNNAMED</flags>
+            </properties>
+        </profile>
+    </profiles>
+</project>

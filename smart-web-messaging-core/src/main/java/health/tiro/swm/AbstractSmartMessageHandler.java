@@ -36,7 +36,6 @@ public abstract class AbstractSmartMessageHandler {
     private static final Pattern MESSAGE_ID_PATTERN = Pattern.compile("\"messageId\"\\s*:\\s*\"([^\"]+)\"", Pattern.CASE_INSENSITIVE);
 
     private final ObjectMapper objectMapper;
-    private final FhirContext fhirContext;
     private final IParser fhirJsonParser;
     private final List<SmartMessageListener> listeners = new CopyOnWriteArrayList<>();
     private final Map<String, Consumer<SmartMessageResponse>> responseListeners = new ConcurrentHashMap<>();
@@ -58,7 +57,6 @@ public abstract class AbstractSmartMessageHandler {
      * @param customObjectMapper  Custom ObjectMapper to use, or null for the default
      */
     protected AbstractSmartMessageHandler(FhirContext fhirContext, ObjectMapper customObjectMapper) {
-        this.fhirContext = fhirContext;
         this.fhirJsonParser = fhirContext.newJsonParser().setPrettyPrint(false);
         this.objectMapper = customObjectMapper != null ? customObjectMapper : createDefaultObjectMapper();
         logger.info("SmartMessageHandler initialized.");

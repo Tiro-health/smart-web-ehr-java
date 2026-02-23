@@ -11,7 +11,7 @@
 
     <name>SMART Web Messaging Parent</name>
     <description>SMART Web Messaging toolkit for Java - parse and handle WebView messages for FHIR resource sync</description>
-    <url>https://github.com/Tiro-health/smart-web-ehr-java</url>
+    <url>https://github.com/Tiro-health/java-integration-harness</url>
 
     <licenses>
         <license>
@@ -30,18 +30,20 @@
     </developers>
 
     <scm>
-        <connection>scm:git:git://github.com/Tiro-health/smart-web-ehr-java.git</connection>
-        <developerConnection>scm:git:ssh://github.com:Tiro-health/smart-web-ehr-java.git</developerConnection>
-        <url>https://github.com/Tiro-health/smart-web-ehr-java/tree/main</url>
+        <connection>scm:git:git://github.com/Tiro-health/java-integration-harness.git</connection>
+        <developerConnection>scm:git:ssh://github.com:Tiro-health/java-integration-harness.git</developerConnection>
+        <url>https://github.com/Tiro-health/java-integration-harness/tree/main</url>
     </scm>
 
     <modules>
         <module>smart-web-messaging-core</module>
         <module>smart-web-messaging-r4</module>
         <module>smart-web-messaging-r5</module>
-        <module>form-viewer-swing</module>
-        <module>form-viewer-swing-jxbrowser</module>
-        <module>form-viewer-swing-equo</module>
+        <module>form-filler-swing</module>
+        <module>form-filler-swing-jxbrowser</module>
+        <module>form-filler-swing-equo</module>
+        <module>examples/jxbrowser</module>
+        <module>examples/equo</module>
     </modules>
 
     <properties>
@@ -66,7 +68,18 @@
 
             <dependency>
                 <groupId>health.tiro</groupId>
-                <artifactId>form-viewer-swing</artifactId>
+                <artifactId>smart-web-messaging-r4</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>health.tiro</groupId>
+                <artifactId>smart-web-messaging-r5</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>health.tiro</groupId>
+                <artifactId>form-filler-swing</artifactId>
                 <version>${project.version}</version>
             </dependency>
 
