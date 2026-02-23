@@ -9,6 +9,7 @@ A Java port of the [SMARTWebEHR](https://github.com/Tiro-health/SMARTWebEHR) .NE
 - Form submission handling
 - Event-driven architecture
 - Multi-version FHIR support (R4 and R5)
+- Embedded browser UI modules (JxBrowser and Equo Chromium adapters)
 
 ## Installation
 
@@ -21,7 +22,7 @@ Pick the module matching your FHIR version:
 ```xml
 <dependency>
     <groupId>health.tiro</groupId>
-    <artifactId>smart-web-ehr-r5</artifactId>
+    <artifactId>smart-web-messaging-r5</artifactId>
     <version>2.0.0</version>
 </dependency>
 ```
@@ -31,21 +32,21 @@ Pick the module matching your FHIR version:
 ```xml
 <dependency>
     <groupId>health.tiro</groupId>
-    <artifactId>smart-web-ehr-r4</artifactId>
+    <artifactId>smart-web-messaging-r4</artifactId>
     <version>2.0.0</version>
 </dependency>
 ```
 
-Both modules transitively include `smart-web-ehr-core`, so you only need one dependency.
+Both modules transitively include `smart-web-messaging-core`, so you only need one dependency.
 
 ## Usage
 
 ### Basic Setup
 
 ```java
-// R5 example — for R4, change the import to health.tiro.smartwebehr.r4.SmartMessageHandler
-import health.tiro.smartwebehr.r5.SmartMessageHandler;
-import health.tiro.smartwebehr.r5.R5SmartMessageListener;
+// R5 example — for R4, change the import to health.tiro.swm.r4.SmartMessageHandler
+import health.tiro.swm.r5.SmartMessageHandler;
+import health.tiro.swm.r5.R5SmartMessageListener;
 import org.hl7.fhir.r5.model.*;
 
 // Create handler
@@ -60,105 +61,82 @@ handler.addListener(new R5SmartMessageListener() {
 
     @Override
     public void onCloseApplication(CloseApplicationEvent event) {
-        // Close the form viewer
+        // Close the form filler
     }
 });
 ```
 
-### Integration with JxBrowser
+### Embedded Browser (FormFiller)
+
+The easiest way to embed a SMART Web Messaging browser is using `FormFiller` with a browser adapter:
 
 ```java
-import com.teamdev.jxbrowser.browser.Browser;
-import com.teamdev.jxbrowser.engine.Engine;
-import com.teamdev.jxbrowser.js.JsObject;
+import health.tiro.swm.r5.SmartMessageHandler;
+import health.tiro.formfiller.swing.*;
+import health.tiro.formfiller.swing.jxbrowser.*;  // or .equo.*
 
-public class JxBrowserIntegration {
+// 1. Create a browser adapter (pick one)
+EmbeddedBrowser browser = new JxBrowserAdapter(
+    JxBrowserConfig.builder().licenseKey("YOUR-KEY").build()
+);
+// OR: new EquoBrowserAdapter()
 
-    private SmartMessageHandler handler;
-    private Browser browser;
+// 2. Create the FHIR handler (pick your version)
+SmartMessageHandler handler = new SmartMessageHandler();
 
-    public void setup() {
-        handler = new SmartMessageHandler();
+// 3. Create the viewer
+FormFillerConfig config = FormFillerConfig.builder()
+    .targetUrl("https://your-form-app.com/form-filler.html")
+    .build();
+FormFiller viewer = new FormFiller(config, browser, handler);
 
-        // Set up message sender for outbound messages
-        handler.setMessageSender(jsonMessage -> {
-            CompletableFuture<String> future = new CompletableFuture<>();
-            browser.mainFrame().ifPresent(frame -> {
-                frame.executeJavaScript("window.postMessage(" + jsonMessage + ", '*')");
-                future.complete(null);
-            });
-            return future;
-        });
-
-        // Inject message handler into browser
-        browser.mainFrame().ifPresent(frame -> {
-            JsObject window = frame.executeJavaScript("window");
-            window.putProperty("smartMessageCallback", (String message) -> {
-                String response = handler.handleMessage(message);
-                if (response != null) {
-                    frame.executeJavaScript("window.postMessage(" + response + ", '*')");
-                }
-            });
-        });
-
-        // Add listener for incoming messages
-        browser.mainFrame().ifPresent(frame -> {
-            frame.executeJavaScript(
-                "window.addEventListener('message', function(event) {" +
-                "  if (event.data && event.data.messageId) {" +
-                "    window.smartMessageCallback(JSON.stringify(event.data));" +
-                "  }" +
-                "});"
-            );
-        });
+// 4. Listen for events
+viewer.addFormFillerListener(new FormFillerListener() {
+    @Override
+    public void onFormSubmitted(IBaseResource response, IBaseResource outcome) {
+        QuestionnaireResponse qr = (QuestionnaireResponse) response;
+        // process the submitted form
     }
-}
+
+    @Override
+    public void onCloseRequested() {
+        // close the window
+    }
+});
+
+// 5. Add to your Swing UI
+frame.add(viewer.getComponent(), BorderLayout.CENTER);
+
+// 6. Display a questionnaire (messages are queued until handshake completes)
+handler.sendSdcDisplayQuestionnaireAsync(
+    "http://example.org/Questionnaire/intake",
+    null, patient, encounter, author, null
+);
 ```
 
-### Integration with Equo Chromium
+Install the UI module matching your browser engine:
 
-```java
-import com.nicepay.nicefx.browser.ChromiumBrowser;
+**JxBrowser:**
 
-public class EquoIntegration {
-
-    private SmartMessageHandler handler;
-    private ChromiumBrowser browser;
-
-    public void setup() {
-        handler = new SmartMessageHandler();
-
-        // Set up message sender
-        handler.setMessageSender(jsonMessage -> {
-            CompletableFuture<String> future = new CompletableFuture<>();
-            browser.executeJavaScript("window.postMessage(" + jsonMessage + ", '*')");
-            future.complete(null);
-            return future;
-        });
-
-        // Register Java function to be called from JavaScript
-        browser.registerBrowserFunction("smartMessageCallback", args -> {
-            if (args.length > 0) {
-                String message = args[0].toString();
-                String response = handler.handleMessage(message);
-                if (response != null) {
-                    browser.executeJavaScript("window.postMessage(" + response + ", '*')");
-                }
-            }
-            return null;
-        });
-
-        // Set up message listener in browser
-        browser.executeJavaScript(
-            "window.addEventListener('message', function(event) {" +
-            "  if (event.data && event.data.messageId) {" +
-            "    smartMessageCallback(JSON.stringify(event.data));" +
-            "  }" +
-            "});"
-        );
-    }
-}
+```xml
+<dependency>
+    <groupId>health.tiro</groupId>
+    <artifactId>form-filler-swing-jxbrowser</artifactId>
+    <version>2.0.0</version>
+</dependency>
 ```
+
+**Equo Chromium:**
+
+```xml
+<dependency>
+    <groupId>health.tiro</groupId>
+    <artifactId>form-filler-swing-equo</artifactId>
+    <version>2.0.0</version>
+</dependency>
+```
+
+Both transitively include `form-filler-swing` and `smart-web-messaging-core`. You also need the R4 or R5 module for your FHIR handler, plus the browser engine dependency itself (JxBrowser or Equo Chromium).
 
 ### Sending SDC Messages
 
@@ -199,9 +177,12 @@ handler.sendSdcConfigureContextAsync(
 
 | Module | Artifact | Description |
 |--------|----------|-------------|
-| Core | `smart-web-ehr-core` | Shared logic, FHIR-version-independent. Depends on `hapi-fhir-base` only. |
-| R4 | `smart-web-ehr-r4` | FHIR R4 typed API. Depends on core + `hapi-fhir-structures-r4`. |
-| R5 | `smart-web-ehr-r5` | FHIR R5 typed API. Depends on core + `hapi-fhir-structures-r5`. |
+| Core | `smart-web-messaging-core` | Shared logic, FHIR-version-independent. Depends on `hapi-fhir-base` only. |
+| R4 | `smart-web-messaging-r4` | FHIR R4 typed API. Depends on core + `hapi-fhir-structures-r4`. |
+| R5 | `smart-web-messaging-r5` | FHIR R5 typed API. Depends on core + `hapi-fhir-structures-r5`. |
+| Swing | `form-filler-swing` | `FormFiller` controller + `EmbeddedBrowser` interface. Depends on core. |
+| Swing JxBrowser | `form-filler-swing-jxbrowser` | JxBrowser adapter. Depends on swing + JxBrowser (provided). |
+| Swing Equo | `form-filler-swing-equo` | Equo Chromium adapter. Depends on swing + Equo Chromium (provided). |
 
 ## Message Types Supported
 
@@ -217,31 +198,52 @@ handler.sendSdcConfigureContextAsync(
 - `sdc.configureContext` - Configure launch context
 - `sdc.displayQuestionnaire` - Display a questionnaire
 
-## Migrating from 1.x
+## JS Bridge
 
-```java
-// Before (1.x)
-import health.tiro.smartwebehr.SmartMessageHandler;
+The SWM bridge JavaScript is bundled in the library and **injected automatically** by each browser adapter after page load. The HTML page does not need to include any bridge script.
 
-// After (2.x) — pick your FHIR version
-import health.tiro.smartwebehr.r5.SmartMessageHandler;  // R5
-import health.tiro.smartwebehr.r4.SmartMessageHandler;  // R4
+Each adapter injects the bridge and initializes it with a transport-specific `sendFn`:
+
+- **JxBrowser** — exposes `window.javaBridge`, calls `SmartWebMessaging.init(sendFn)` where `sendFn` uses `javaBridge.postMessage(json)`
+- **Equo Chromium** — calls `SmartWebMessaging.init(sendFn)` where `sendFn` uses iframe URL scheme (`swm://postMessage/...`)
+- **WebView2 (.NET)** — same pattern with `chrome.webview.postMessage(msg)`
+
+Java→JS messages are delivered via `window.swmReceiveMessage(json)`, which the bridge registers globally.
+
+## Examples
+
+See the [`examples/`](examples/) directory for runnable demo applications:
+
+- **[JxBrowser — minimal](examples/jxbrowser/src/main/java/health/tiro/examples/jxbrowser/Main.java)** — basic form filler with JxBrowser (FHIR R4)
+- **[JxBrowser — complete](examples/jxbrowser/src/main/java/health/tiro/examples/jxbrowser/CompleteExample.java)** — EHR-style UI with patient context, template switching, and saved progress
+- **[Equo Chromium](examples/equo/src/main/java/health/tiro/examples/equo/Main.java)** — basic form filler with Equo Chromium (FHIR R5)
+
+**Running the examples:**
+
+First, serve the form filler page on `http://localhost:8000`:
+
+```bash
+cd examples/src/main/resources/form-filler
+python3 -m http.server 8000
 ```
 
-The `SmartMessageHandler` API is unchanged. The only difference is the import and the Maven artifact.
+Then in a separate terminal:
 
-For typed event access, use `R5SmartMessageListener` or `R4SmartMessageListener` instead of `SmartMessageListener`.
+```bash
+# JxBrowser (requires a license key)
+cd examples/jxbrowser
+mvn compile exec:java \
+  -Djxbrowser.license.key=YOUR-LICENSE-KEY \
+  -Dexec.mainClass=health.tiro.examples.jxbrowser.Main
+
+# Equo Chromium
+cd examples/equo
+mvn compile exec:exec
+```
 
 ## Requirements
 
 - Java 8 or higher
-
-## Dependencies
-
-- HAPI FHIR (5.7.0)
-- Jackson Databind (2.15.3)
-- SLF4J (2.0.9)
-- Javax Validation API (2.0.1.Final)
 
 ## License
 

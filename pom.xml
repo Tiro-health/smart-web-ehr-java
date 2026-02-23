@@ -5,13 +5,13 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>health.tiro</groupId>
-    <artifactId>smart-web-ehr-parent</artifactId>
+    <artifactId>smart-web-messaging-parent</artifactId>
     <version>2.0.0</version>
     <packaging>pom</packaging>
 
-    <name>SMART Web EHR Parent</name>
+    <name>SMART Web Messaging Parent</name>
     <description>SMART Web Messaging toolkit for Java - parse and handle WebView messages for FHIR resource sync</description>
-    <url>https://github.com/Tiro-health/smart-web-ehr-java</url>
+    <url>https://github.com/Tiro-health/java-integration-harness</url>
 
     <licenses>
         <license>
@@ -30,21 +30,28 @@
     </developers>
 
     <scm>
-        <connection>scm:git:git://github.com/Tiro-health/smart-web-ehr-java.git</connection>
-        <developerConnection>scm:git:ssh://github.com:Tiro-health/smart-web-ehr-java.git</developerConnection>
-        <url>https://github.com/Tiro-health/smart-web-ehr-java/tree/main</url>
+        <connection>scm:git:git://github.com/Tiro-health/java-integration-harness.git</connection>
+        <developerConnection>scm:git:ssh://github.com:Tiro-health/java-integration-harness.git</developerConnection>
+        <url>https://github.com/Tiro-health/java-integration-harness/tree/main</url>
     </scm>
 
     <modules>
-        <module>smart-web-ehr-core</module>
-        <module>smart-web-ehr-r4</module>
-        <module>smart-web-ehr-r5</module>
+        <module>smart-web-messaging-core</module>
+        <module>smart-web-messaging-r4</module>
+        <module>smart-web-messaging-r5</module>
+        <module>form-filler-swing</module>
+        <module>form-filler-swing-jxbrowser</module>
+        <module>form-filler-swing-equo</module>
+        <module>examples/jxbrowser</module>
+        <module>examples/equo</module>
     </modules>
 
     <properties>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <jxbrowser.version>7.41.3</jxbrowser.version>
+        <equo.chromium.version>144.0.0</equo.chromium.version>
         <hapi.fhir.version>5.7.0</hapi.fhir.version>
         <jackson.version>2.15.3</jackson.version>
         <slf4j.version>2.0.9</slf4j.version>
@@ -55,7 +62,24 @@
             <!-- Internal modules -->
             <dependency>
                 <groupId>health.tiro</groupId>
-                <artifactId>smart-web-ehr-core</artifactId>
+                <artifactId>smart-web-messaging-core</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>health.tiro</groupId>
+                <artifactId>smart-web-messaging-r4</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>health.tiro</groupId>
+                <artifactId>smart-web-messaging-r5</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>health.tiro</groupId>
+                <artifactId>form-filler-swing</artifactId>
                 <version>${project.version}</version>
             </dependency>
 
@@ -110,6 +134,25 @@
                 <groupId>org.hibernate.validator</groupId>
                 <artifactId>hibernate-validator</artifactId>
                 <version>6.2.5.Final</version>
+            </dependency>
+
+            <!-- JxBrowser -->
+            <dependency>
+                <groupId>com.teamdev.jxbrowser</groupId>
+                <artifactId>jxbrowser</artifactId>
+                <version>${jxbrowser.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.teamdev.jxbrowser</groupId>
+                <artifactId>jxbrowser-swing</artifactId>
+                <version>${jxbrowser.version}</version>
+            </dependency>
+
+            <!-- Equo Chromium -->
+            <dependency>
+                <groupId>com.equo</groupId>
+                <artifactId>com.equo.chromium</artifactId>
+                <version>${equo.chromium.version}</version>
             </dependency>
 
             <!-- Testing -->
