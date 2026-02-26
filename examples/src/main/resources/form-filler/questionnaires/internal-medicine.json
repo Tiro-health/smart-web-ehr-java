@@ -36,7 +36,7 @@
           "title": "Verwijzende Collega",
           "text": {
             "status": "generated",
-            "div": "<div xmlns=\"http://www.w3.org/1999/xhtml\"><style>.card{background:#f8f9fa;border-radius:8px;padding:16px;margin-bottom:16px;border-left:4px solid #28a745}.label{color:#666;font-size:0.9em;margin-bottom:4px}.value{font-size:1.1em;font-weight:500;color:#333}</style><div class=\"card\"><div class=\"label\">Collega Internist</div><div class=\"value\">{{ %resource.item.where(linkId='019d8725-aab3-8233-cf4d-be8ec7494a90').item.where(linkId='019d8725-aab3-8233-cf4d-be9f8c8d1001').answer.valueCoding.display.first() }}</div></div></div>"
+            "div": "<div xmlns=\"http://www.w3.org/1999/xhtml\"><style>.card{background:#f8f9fa;border-radius:8px;padding:16px;margin-bottom:16px;border-left:4px solid #28a745}.label{color:#666;font-size:0.9em;margin-bottom:4px}.value{font-size:1.1em;font-weight:500;color:#333}</style><div class=\"card\"><div class=\"label\">Naam collega</div><div class=\"value\">{{ %resource.item.where(linkId='verwijzende-collega-group').item.where(linkId='collega').answer.valueCoding.display.first() }}</div></div></div>"
           }
         },
         {
@@ -51,7 +51,7 @@
   ],
   "item": [
     {
-      "linkId": "019d8725-aab3-8233-cf4d-be8ec7494a90",
+      "linkId": "verwijzende-collega-group",
       "type": "group",
       "text": "Verwijzende collega",
       "code": [
@@ -78,22 +78,22 @@
         {
           "url": "http://fhir.tiro.health/StructureDefinition/narrative-template-snippet",
           "valueExpression": {
-            "name": "019d8725-aab3-8233-cf4d-be8ec7494a90",
-            "expression": "{%- assign collega = item | fhirpath : \"item.where(linkId='019d8725-aab3-8233-cf4d-be9f8c8d1001')\" | first -%}\n{%- if item.text -%}\n{%- assign GroupTitle = item.text -%}\n<h2>{{ GroupTitle }}</h2>\n{%- endif -%}\n{%- render \"019d8725-aab3-8233-cf4d-be9f8c8d1001\", item:collega -%}\n",
+            "name": "verwijzende-collega-group",
+            "expression": "{%- assign collega = item | fhirpath : \"item.where(linkId='collega')\" | first -%}\n{%- if item.text -%}\n{%- assign GroupTitle = item.text -%}\n<h2>{{ GroupTitle }}</h2>\n{%- endif -%}\n{%- render \"collega\", item:collega -%}\n",
             "language": "text/liquid"
           }
         }
       ],
       "item": [
         {
-          "linkId": "019d8725-aab3-8233-cf4d-be9f8c8d1001",
+          "linkId": "collega",
           "type": "reference",
-          "text": "collega internist",
+          "text": "Naam collega",
           "code": [
             {
               "system": "http://templates.tiro.health/templates/8f9fce1ddfb55fc7b9727f39eb8c2bf3/technical-key",
-              "code": "collega_internist",
-              "display": "collega_internist"
+              "code": "collega",
+              "display": "collega"
             }
           ],
           "repeats": false,
@@ -113,7 +113,7 @@
             {
               "url": "http://fhir.tiro.health/StructureDefinition/narrative-template-snippet",
               "valueExpression": {
-                "name": "019d8725-aab3-8233-cf4d-be9f8c8d1001",
+                "name": "collega",
                 "expression": "{%- assign Question = item.text | default: item.linkId -%}\n{%- assign Answer = item.answer[0].valueCoding.display -%}\n{%- if Answer -%}\n<div>{{Question}}: {{ Answer }}</div>\n{%- endif -%}\n",
                 "language": "text/liquid"
               }
@@ -122,7 +122,7 @@
               "url": "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-questionnaire-answerExpression",
               "valueExpression": {
                 "language": "application/x-fhir-query",
-                "expression": "PractitionerRole?specialty=http://snomed.info/sct|419192003"
+                "expression": "PractitionerRole?specialty={{%user.specialty.coding.where(system='http://snomed.info/sct').first()}}"
               }
             }
           ]

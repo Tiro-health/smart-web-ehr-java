@@ -1,13 +1,13 @@
 package health.tiro.examples.jxbrowser;
 
-import health.tiro.swm.r4.SmartMessageHandler;
+import health.tiro.swm.r5.SmartMessageHandler;
 import health.tiro.formfiller.swing.*;
 import health.tiro.formfiller.swing.jxbrowser.*;
 
 import org.hl7.fhir.instance.model.api.IBaseResource;
-import org.hl7.fhir.r4.model.*;
+import org.hl7.fhir.r5.model.*;
 
-import static ca.uhn.fhir.context.FhirContext.forR4Cached;
+import static ca.uhn.fhir.context.FhirContext.forR5Cached;
 
 import javax.swing.*;
 import javax.swing.border.*;
@@ -79,7 +79,7 @@ public class CompleteExample {
                     if (currentTemplateUrl != null && response instanceof QuestionnaireResponse) {
                         savedResponses.put(currentTemplateUrl, (QuestionnaireResponse) response);
                     }
-                    String json = forR4Cached().newJsonParser().setPrettyPrint(true).encodeResourceToString(response);
+                    String json = forR5Cached().newJsonParser().setPrettyPrint(true).setParserErrorHandler(new ca.uhn.fhir.parser.LenientErrorHandler()).encodeResourceToString(response);
                     System.out.println("Form submitted:\n" + json);
 
                     // Show the narrative in a popup

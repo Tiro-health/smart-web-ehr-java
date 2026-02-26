@@ -121,7 +121,11 @@
         </div>
 
         <div class="form-container">
-            <tiro-form-filler id="form-filler" data-endpoint-address="http://fhir-server:5826/fhir/r5" sdc-endpoint-address="http://fhir-server:8000/fhir/r5">
+            <tiro-form-filler
+                id="form-filler"
+                sdc-endpoint-address="http://localhost:8000/fhir/r5"
+                data-endpoint-address="http://fhir-server:5826/fhir/r5"
+            >
                 <script
                     type="application/fhir+json"
                     slot="questionnaire"
@@ -143,6 +147,7 @@
         </div>
 
         <script>
+            const sdcServerUrl = "http://localhost:8000/fhir/r5";
             const select = document.getElementById("questionnaire-select");
             let currentQuestionnaire = null; // Store loaded questionnaire for extraction
 
@@ -213,33 +218,34 @@
                     const currentFormFiller =
                         document.getElementById("form-filler");
                     const container = document.querySelector(".form-container");
-
-                    // Create new form filler with the questionnaire
-                    const newFormFiller =
-                        document.createElement("tiro-form-filler");
-                    newFormFiller.id = "form-filler";
-                    newFormFiller.setAttribute("data-endpoint-address", "http://fhir-server:5826/fhir/r5")
-                    newFormFiller.setAttribute("sdc-endpoint-address", "http://fhir-server:8000/fhir/r5")
-                    const newScript = document.createElement("script");
-                    newScript.type = "application/fhir+json";
-                    newScript.slot = "questionnaire";
-                    newScript.textContent = JSON.stringify(
-                        questionnaire,
-                        null,
-                        2,
+                    currentFormFiller.setAttribute(
+                        "launch-context",
+                        JSON.stringify({
+                            patient: {
+                                resourceType: "Patient",
+                                id: "test-patient-001",
+                            },
+                            user: {
+                                resourceType: "PractitionerRole",
+                                id: "test-practitioner-001",
+                                specialty: [
+                                    {
+                                        coding: [
+                                            {
+                                                system: "http://snomed.info/sct",
+                                                code: "394579002",
+                                                display: "Cardiology",
+                                            },
+                                        ],
+                                    },
+                                ],
+                            },
+                        }),
                     );
-
-                    newFormFiller.appendChild(newScript);
-
-                    // Replace old form filler with new one
-                    if (currentFormFiller) {
-                        container.replaceChild(
-                            newFormFiller,
-                            currentFormFiller,
-                        );
-                    } else {
-                        container.appendChild(newFormFiller);
-                    }
+                    currentFormFiller.setAttribute(
+                        "questionnaire",
+                        JSON.stringify(questionnaire),
+                    );
                 } catch (error) {
                     console.error("Error loading questionnaire:", error);
                     alert(
@@ -280,10 +286,6 @@
 
                 const questionnaireResponse = e.detail.response;
 
-                // SDC server handles all FHIR requests (proxies non-SDC operations)
-                const sdcServerUrl = "http://127.0.0.1:8000/fhir/r5";
-                const dataEndpoint = "http://fhir-server:5826/fhir/r5";  // Target FHIR server base URL
-
                 const sdcClient = new TiroWebSdk.SDCClient({
                     baseUrl: sdcServerUrl,
                 });
@@ -313,7 +315,6 @@
                             method: "POST",
                             headers: {
                                 "Content-Type": "application/fhir+json",
-                                "X-Data-Endpoint": dataEndpoint,
                             },
                             body: JSON.stringify(transactionBundle),
                         });
@@ -377,6 +378,6 @@
                 }
             });
         </script>
-        <script src="https://cdn.tiro.health/sdk-dev/v0.2.2-dev.2/tiro-web-sdk.iife.js"></script>
+        <script src="https://cdn.tiro.health/sdk-dev/v0.2.2-dev.4/tiro-web-sdk.iife.js"></script>
     </body>
 </html>
