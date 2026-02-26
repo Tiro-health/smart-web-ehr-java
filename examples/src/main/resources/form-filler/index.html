@@ -218,30 +218,7 @@
                     const currentFormFiller =
                         document.getElementById("form-filler");
                     const container = document.querySelector(".form-container");
-                    currentFormFiller.setAttribute(
-                        "launch-context",
-                        JSON.stringify({
-                            patient: {
-                                resourceType: "Patient",
-                                id: "test-patient-001",
-                            },
-                            user: {
-                                resourceType: "PractitionerRole",
-                                id: "test-practitioner-001",
-                                specialty: [
-                                    {
-                                        coding: [
-                                            {
-                                                system: "http://snomed.info/sct",
-                                                code: "394579002",
-                                                display: "Cardiology",
-                                            },
-                                        ],
-                                    },
-                                ],
-                            },
-                        }),
-                    );
+
                     currentFormFiller.setAttribute(
                         "questionnaire",
                         JSON.stringify(questionnaire),

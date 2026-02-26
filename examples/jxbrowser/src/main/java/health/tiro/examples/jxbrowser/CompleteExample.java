@@ -162,27 +162,27 @@ public class CompleteExample {
                 .setDisplay("dr. Van Damme"));
         surgeon.addCode(new CodeableConcept().addCoding(new Coding()
                 .setSystem("http://snomed.info/sct")
-                .setCode("304292004")
-                .setDisplay("Surgeon")));
+                .setCode("419192003")
+                .setDisplay("Internal medicine")));
         surgeon.addSpecialty(new CodeableConcept().addCoding(new Coding()
                 .setSystem("http://snomed.info/sct")
-                .setCode("394609007")
-                .setDisplay("General surgery")));
+                .setCode("419192003")
+                .setDisplay("Internal medicine")));
 
-        PractitionerRole anesthesiologist = new PractitionerRole();
-        anesthesiologist.setId("role-002");
-        anesthesiologist.setPractitioner(new Reference("Practitioner/practitioner-002")
+        PractitionerRole cardiologist = new PractitionerRole();
+        cardiologist.setId("role-002");
+        cardiologist.setPractitioner(new Reference("Practitioner/practitioner-002")
                 .setDisplay("dr. Janssen"));
-        anesthesiologist.addCode(new CodeableConcept().addCoding(new Coding()
+        cardiologist.addCode(new CodeableConcept().addCoding(new Coding()
                 .setSystem("http://snomed.info/sct")
-                .setCode("88189002")
-                .setDisplay("Anesthesiologist")));
-        anesthesiologist.addSpecialty(new CodeableConcept().addCoding(new Coding()
+                .setCode("394579002")
+                .setDisplay("Cardiology")));
+        cardiologist.addSpecialty(new CodeableConcept().addCoding(new Coding()
                 .setSystem("http://snomed.info/sct")
-                .setCode("394577000")
-                .setDisplay("Anesthetics")));
+                .setCode("394579002")
+                .setDisplay("Cardiology")));
 
-        return new PractitionerRole[]{surgeon, anesthesiologist};
+        return new PractitionerRole[]{surgeon, cardiologist};
     }
 
     private static Encounter createEncounter(Patient patient) {
