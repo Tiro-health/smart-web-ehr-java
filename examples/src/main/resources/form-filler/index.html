@@ -21,27 +21,6 @@
                 color: #333;
                 margin-bottom: 1.5rem;
             }
-            .controls {
-                margin-bottom: 1.5rem;
-            }
-            label {
-                display: block;
-                margin-bottom: 0.5rem;
-                font-weight: 500;
-                color: #555;
-            }
-            select {
-                padding: 0.5rem 1rem;
-                font-size: 1rem;
-                border: 1px solid #ccc;
-                border-radius: 4px;
-                background: white;
-                cursor: pointer;
-            }
-            select:focus {
-                outline: none;
-                border-color: #0066cc;
-            }
             .form-container {
                 background: white;
                 border-radius: 8px;
@@ -114,12 +93,6 @@
     </head>
     <body>
         <h1>Tiro.health Web SDK Demo</h1>
-
-        <div class="controls">
-            <label for="questionnaire-select">Select Questionnaire:</label>
-            <select id="questionnaire-select"></select>
-        </div>
-
         <div class="form-container">
             <tiro-form-filler
                 id="form-filler"
@@ -148,7 +121,6 @@
 
         <script>
             const sdcServerUrl = "http://localhost:8000/fhir/r5";
-            const select = document.getElementById("questionnaire-select");
             let currentQuestionnaire = null; // Store loaded questionnaire for extraction
 
             // Helper function to find PDF in a FHIR Bundle
@@ -190,50 +162,6 @@
                 return null;
             }
 
-            async function loadManifest() {
-                const response = await fetch("questionnaires/manifest.json");
-                const manifest = await response.json();
-                select.innerHTML = "";
-                for (const item of manifest) {
-                    const option = document.createElement("option");
-                    option.value = item.id;
-                    option.textContent = item.title;
-                    select.appendChild(option);
-                }
-                return manifest;
-            }
-
-            async function loadQuestionnaire(name) {
-                try {
-                    const response = await fetch(`questionnaires/${name}.json`);
-                    if (!response.ok) {
-                        throw new Error(
-                            `Failed to load questionnaire: ${response.status}`,
-                        );
-                    }
-                    const questionnaire = await response.json();
-                    currentQuestionnaire = questionnaire; // Store for extraction
-
-                    // Get fresh reference to current form filler
-                    const currentFormFiller =
-                        document.getElementById("form-filler");
-                    const container = document.querySelector(".form-container");
-
-                    currentFormFiller.setAttribute(
-                        "questionnaire",
-                        JSON.stringify(questionnaire),
-                    );
-                } catch (error) {
-                    console.error("Error loading questionnaire:", error);
-                    alert(
-                        "Failed to load questionnaire. Make sure you are running a local server.",
-                    );
-                }
-            }
-
-            select.addEventListener("change", (e) => {
-                loadQuestionnaire(e.target.value);
-            });
 
             // Submit button handler
             const submitBtn = document.getElementById("submit-btn");
@@ -348,12 +276,6 @@
                 }
             });
 
-            // Load manifest and initial questionnaire
-            loadManifest().then((manifest) => {
-                if (manifest.length > 0) {
-                    loadQuestionnaire(manifest[0].id);
-                }
-            });
         </script>
         <script src="https://cdn.tiro.health/sdk-dev/v0.2.2-dev.4/tiro-web-sdk.iife.js"></script>
     </body>

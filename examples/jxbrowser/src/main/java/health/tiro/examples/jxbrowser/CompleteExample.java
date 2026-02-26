@@ -21,8 +21,8 @@ import java.util.Map;
 public class CompleteExample {
 
     private static final String[][] TEMPLATES = {
-            {"Operatieverslag RARP", "http://templates.tiro.health/templates/2630b8675c214707b1f86d1fbd4deb87"},
-            {"Anesthesieverslag", "http://templates.tiro.health/templates/c6fa8202c02c447d8acad47bc60fb336"},
+            {"Cardio template", "http://templates.tiro.health/templates/b62246c903cf4f01a20a68dd559e8c5c"},
+            {"Interne geneeskunde template", "http://templates.tiro.health/templates/7e8ebd0ccfb44eb6a8616e28da7b1ae2"},
     };
 
     private static final Map<String, QuestionnaireResponse> savedResponses = new HashMap<>();
