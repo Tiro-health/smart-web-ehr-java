@@ -12,7 +12,6 @@ import com.teamdev.jxbrowser.view.swing.BrowserView;
 import health.tiro.formfiller.swing.EmbeddedBrowser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.awt.Component;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -27,27 +26,53 @@ import java.util.function.Function;
  * );
  * }</pre>
  */
-public class JxBrowserAdapter implements EmbeddedBrowser {
+public class JxBrowserAdapter implements EmbeddedBrowser, AutoCloseable {
 
     private static final Logger logger = LoggerFactory.getLogger(JxBrowserAdapter.class);
 
-    private final JxBrowserConfig config;
     private final List<Runnable> pageLoadListeners = new CopyOnWriteArrayList<>();
-    private Engine engine;
+    private final Engine engine;
     private Browser browser;
     private JxBrowserBridge bridge;
     private Function<String, String> pendingIncomingMessageHandler;
+    private boolean ownsEngine = false;
 
+    /**
+     * Creates a new adapter with an internally managed {@link Engine}.
+     * <p>
+     * Use this constructor when this adapter should have its own dedicated Chromium process.
+     * The underlying engine will be automatically closed when {@link #close()} is called.
+     *
+     * @param config the configuration used to initialize the internal JxBrowser engine
+     */
     public JxBrowserAdapter(JxBrowserConfig config) {
-        this.config = config;
+        this.engine = Engine.newInstance(EngineOptions.newBuilder(config.getRenderingMode())
+                .licenseKey(config.getLicenseKey())
+                .language(config.getLanguage())
+                .build());
+        this.ownsEngine = true;
+    }
+
+    /**
+     * Creates a new adapter using an externally provided {@link Engine}.
+     * <p>
+     * Use this constructor to share a single Chromium process across multiple browser instances
+     * to save memory. Note that calling {@link #close()} on this adapter will close the
+     * {@link Browser} instance it created, but will <b>not</b> close the shared engine.
+     *
+     * @param engine the existing JxBrowser engine to be used by this adapter
+     * @throws NullPointerException if the provided engine is null
+     */
+    public JxBrowserAdapter(Engine engine) {
+        if (engine == null) {
+            throw new NullPointerException("The provided engine cannot be null.");
+        }
+        this.engine = engine;
+        this.ownsEngine = false;
     }
 
     @Override
     public Component createComponent() {
-        engine = Engine.newInstance(EngineOptions.newBuilder(config.getRenderingMode())
-            .licenseKey(config.getLicenseKey())
-            .language(config.getLanguage())
-            .build());
 
         engine.permissions().set(RequestPermissionCallback.class, (params, tell) -> {
             if (params.permissionType() == PermissionType.AUDIO_CAPTURE) {
@@ -125,11 +150,14 @@ public class JxBrowserAdapter implements EmbeddedBrowser {
     }
 
     @Override
-    public void dispose() {
+    public void close() {
         if (bridge != null) {
-            bridge.dispose();
+            bridge.close();
         }
-        if (engine != null) {
+        if (browser != null) {
+            browser.close();
+        }
+        if (ownsEngine && engine != null && !engine.isClosed()) {
             engine.close();
         }
     }

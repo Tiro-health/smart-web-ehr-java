@@ -11,7 +11,8 @@ import java.util.function.Function;
  * Java→JS messages are sent via {@link #sendMessage(String)}, which by default
  * calls {@code window.swmReceiveMessage(...)} in the browser.
  */
-public interface EmbeddedBrowser {
+public interface EmbeddedBrowser extends AutoCloseable {
+
 
     /**
      * Create the browser Swing component. Does NOT load a URL yet.
@@ -70,8 +71,5 @@ public interface EmbeddedBrowser {
      */
     void addPageLoadListener(Runnable callback);
 
-    /**
-     * Clean up all browser resources (engine, temp files, etc.).
-     */
-    void dispose();
+    void close();
 }

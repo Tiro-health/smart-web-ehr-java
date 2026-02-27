@@ -17,7 +17,7 @@ import java.util.function.Function;
  * Exposes a {@code @JsAccessible} {@link #postMessage(String)} method
  * that JS calls via {@code window.javaBridge.postMessage(json)}.
  */
-public class JxBrowserBridge {
+public class JxBrowserBridge implements AutoCloseable {
 
     private static final Logger logger = LoggerFactory.getLogger(JxBrowserBridge.class);
 
@@ -61,8 +61,8 @@ public class JxBrowserBridge {
             }
         });
     }
-
-    void dispose() {
+    @Override
+    public void close() {
         executor.shutdownNow();
     }
 
