@@ -20,7 +20,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class CompleteExample {
-
+    private static final String SDC_SERVER = "http://localhost:8000/fhir/r5";
+    private static final String PATIENT_ID = "test-patient-001";
     private static final String[][] TEMPLATES = {
             {"Cardio template", "http://templates.tiro.health/templates/b62246c903cf4f01a20a68dd559e8c5c"},
             {"Interne geneeskunde template", "http://templates.tiro.health/templates/7e8ebd0ccfb44eb6a8616e28da7b1ae2"},
@@ -159,7 +160,7 @@ public class CompleteExample {
 
     private static Patient createPatient() {
         Patient patient = new Patient();
-        patient.setId("test-patient-001");
+        patient.setId(PATIENT_ID);
         patient.addName(new HumanName()
                 .setFamily("Peeters")
                 .addGiven("Marc")
@@ -365,17 +366,16 @@ public class CompleteExample {
             extractButton.setText("Extracting...");
             new Thread(() -> {
                 try {
-                    String serverBase = "http://localhost:8000/fhir/r5";
                     ca.uhn.fhir.context.FhirContext ctx = forR5Cached();
                     ctx.getRestfulClientFactory().setServerValidationMode(
                             ca.uhn.fhir.rest.client.api.ServerValidationModeEnum.NEVER);
-                    IGenericClient client = ctx.newRestfulGenericClient(serverBase);
+                    IGenericClient client = ctx.newRestfulGenericClient(SDC_SERVER);
                     client.registerInterceptor(new ca.uhn.fhir.rest.client.interceptor.LoggingInterceptor(true));
                     Parameters inParams = new Parameters();
                     if (qr.hasSubject() && qr.getSubject().hasReference()) {
                         // inParams.addParameter().setName("subject").setValue(qr.getSubject());
-                        // hardcode for now
-                        inParams.addParameter().setName("subject").setValue(new StringType("Patient/test-patient-001"));
+                        // hardcoded for now ... https://github.com/Tiro-health/atticus-frontend/issues/1693
+                        inParams.addParameter().setName("subject").setValue(new StringType("Patient/" + PATIENT_ID));
 
                     }
                     inParams.addParameter().setName("questionnaire-response").setResource(qr);
