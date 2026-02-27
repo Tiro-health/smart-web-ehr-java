@@ -35,7 +35,7 @@ import java.util.regex.Pattern;
  * frame.add(viewer.getComponent(), BorderLayout.CENTER);
  * }</pre>
  */
-public class FormFiller {
+public class FormFiller implements AutoCloseable {
 
     private static final Logger logger = LoggerFactory.getLogger(FormFiller.class);
     private static final Pattern MESSAGE_TYPE_PATTERN = Pattern.compile(
@@ -217,12 +217,13 @@ public class FormFiller {
     /**
      * Clean up resources. Call this when the viewer is no longer needed.
      */
-    public void dispose() {
+    @Override
+    public void close() {
         tracer.finishSession();
         timeoutScheduler.shutdownNow();
         // Run on a separate thread to avoid deadlocks when called from within
         // a browser callback (e.g., from an onFormSubmitted listener).
-        new Thread(browser::dispose, "formfiller-dispose").start();
+        new Thread(browser::close, "formfiller-dispose").start();
     }
 
     private static String extractMessageType(String json) {

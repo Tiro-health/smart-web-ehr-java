@@ -27,7 +27,7 @@ import java.util.function.Function;
  * EmbeddedBrowser browser = new EquoBrowserAdapter();
  * }</pre>
  */
-public class EquoBrowserAdapter implements EmbeddedBrowser {
+public class EquoBrowserAdapter implements EmbeddedBrowser, AutoCloseable {
 
     private static final Logger logger = LoggerFactory.getLogger(EquoBrowserAdapter.class);
     private static final String SWM_SCHEME = "swm://postMessage/";
@@ -85,7 +85,7 @@ public class EquoBrowserAdapter implements EmbeddedBrowser {
     }
 
     @Override
-    public void dispose() {
+    public void close() {
         executor.shutdownNow();
         if (browser != null) {
             browser.close();

@@ -39,7 +39,7 @@ class JxBrowserIntegrationTest {
         try {
             filler.waitForHandshake().get(15, TimeUnit.SECONDS);
         } finally {
-            filler.dispose();
+            filler.close();
         }
     }
 }

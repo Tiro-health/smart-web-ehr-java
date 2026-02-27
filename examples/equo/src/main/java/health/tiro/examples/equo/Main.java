@@ -36,7 +36,7 @@ public class Main {
             frame.addWindowListener(new WindowAdapter() {
                 @Override
                 public void windowClosing(WindowEvent e) {
-                    filler.dispose();
+                    filler.close();
                     frame.dispose();
                 }
             });
@@ -72,7 +72,7 @@ public class Main {
 
                 @Override
                 public void onCloseRequested() {
-                    filler.dispose();
+                    filler.close();
                     frame.dispose();
                 }
             });

@@ -130,7 +130,7 @@ public class CompleteExample {
             frame.addWindowListener(new WindowAdapter() {
                 @Override
                 public void windowClosing(WindowEvent e) {
-                    filler.dispose();
+                    filler.close();
                     frame.dispose();
                 }
             });
